@@ -1,0 +1,309 @@
+     1                                  ; Proyecto #2 de arquitectura de computadores
+     2                                  ;
+     3                                  ;	
+     4                                  ;
+     5                                  ; ---------------------------------------------------------------------------------------------------------------------------
+     6                                  ;  Este proyecto genera una cadena de ADN definida por el usuario y esta es salvada
+     7                                  ;  en un archivo tipo .adn
+     8                                  ; ---------------------------------------------------------------------------------------------------------------------------
+     9                                  
+    10                                  ; La siguiente parte de código son tags para hacer más legible el código
+    11                                  	sys_exit 	equ 	1
+    12                                  	sys_read 	equ 	3
+    13                                  	sys_write 	equ 	4
+    14                                  	sys_open 	equ 	5	
+    15                                  	sys_close 	equ 	6
+    16                                  	sys_create 	equ 	8
+    17                                  	stdin 		equ		0
+    18                                  	stdout 		equ 	1
+    19                                  
+    20                                  ;los siguientes son permisos de escritura y lectura de archivos
+    21                                  %assign S_IRUSR 00400q
+    22                                  %assign S_IWUSR 00200q
+    23                                  
+    24                                  ; La siguiente parte de código son datos no inicializados
+    25                                  section .bss
+    26                                  
+    27 00000000 <res 00000064>          	buffer resb 100	
+    28                                  	
+    29                                  	inputLen equ 100		;buffer almacenador el string original del usuaro 
+    30 00000064 <res 00000064>          	input resb inputLen		;largo de este buffer
+    31                                  	
+    32                                  	archivoLen equ 1000000		;buffer almacenador el string original del usuaro 
+    33 000000C8 <res 000F4240>          	archivo resb archivoLen		;largo de este buffer
+    34                                  	
+    35                                  	cadenaLen equ 1000001		;buffer almacenador el string original del usuaro 
+    36 000F4308 <res 000F4241>          	cadena resb cadenaLen		;largo de este buffer
+    37                                  	
+    38                                  
+    39                                  ; La siguiente parte de código son datos inicializados
+    40                                  section .data
+    41                                  
+    42 00000000 496E67726573652065-     solicitarLen: db "Ingrese el tamanno de la secuencia de ADN: ",10		
+    43 00000009 6C2074616D616E6E6F-
+    44 00000012 206465206C61207365-
+    45 0000001B 6375656E6369612064-
+    46 00000024 652041444E3A200A   
+    47                                  LensolicitarLen: equ $-solicitarLen	
+    48                                  
+    49 0000002C 496E67726573652065-     solicitarArchivo: db "Ingrese el nombre del archivo: ",10		
+    50 00000035 6C206E6F6D62726520-
+    51 0000003E 64656C206172636869-
+    52 00000047 766F3A200A         
+    53                                  LensolicitarArchivo: equ $-solicitarArchivo	
+    54                                  
+    55 0000004C 0A0A                    espacio: db 10,10
+    56                                  espacioLen: equ $-espacio
+    57                                  
+    58 0000004E 4572726F7220616C20-     errorMensj: db "Error al crear el archivo",10		
+    59 00000057 637265617220656C20-
+    60 00000060 6172636869766F0A   
+    61                                  lenErrorMensj: equ $-errorMensj	
+    62                                  
+    63 00000068 C2A14172636869766F-     MensjExito: db "¡Archivo creado con exito!",10,10
+    64 00000071 2063726561646F2063-
+    65 0000007A 6F6E20657869746F21-
+    66 00000083 0A0A               
+    67                                  lenMensjExito: equ $-MensjExito	
+    68                                  
+    69                                  
+    70                                  ; La siguiente parte de código son las instrucciones
+    71                                  section .text
+    72                                  ; inicio del codigo del programa
+    73                                  	global _start 
+    74                                  	
+    75                                  _start:
+    76 00000000 90                      	nop								; mantiene feliz al debuger
+    77                                  		
+    78                                  	;esta parte imprime lineas en blanco para aspectos esteticos
+    79 00000001 B9[4C000000]            	mov ecx, espacio
+    80 00000006 BA02000000              	mov edx, espacioLen
+    81 0000000B E878010000              	call DisplayText
+    82                                  	;solicito el nombre del archivo que vamos a generar
+    83 00000010 B9[2C000000]            	mov ecx, solicitarArchivo
+    84 00000015 BA20000000              	mov edx, LensolicitarArchivo
+    85 0000001A E869010000              	call DisplayText				;imprio el mensaje al usuario
+    86 0000001F BA40420F00              	mov edx, archivoLen				
+    87 00000024 B9[C8000000]            	mov ecx, archivo 				
+    88 00000029 E867010000              	call ReadText					;recivo el mensaje del usuario
+    89                                  	
+    90 0000002E 89C1                    	mov ecx, eax					;muevo al ecx la cantidad de digitos leidos
+    91 00000030 49                      	dec ecx							;decremento el ecx
+    92 00000031 B32E                    	mov bl, "."						;muevo al bl un caracter "." 
+    93 00000033 8899[C8000000]          	mov byte[archivo+ecx],bl		;paso al buffer el "."
+    94 00000039 B361                    	mov bl, "a"						;muevo al bl un caracter "a" 
+    95 0000003B 8898[C8000000]          	mov byte[archivo+eax], bl		;paso al buffer el "."
+    96 00000041 40                      	inc eax							;incremento el puntero
+    97 00000042 B364                    	mov bl, "d"						;muevo al bl un caracter "d" 
+    98 00000044 8898[C8000000]          	mov byte[archivo+eax], bl		;paso al buffer el "d"
+    99 0000004A 40                      	inc eax							;incremento el puntero
+   100 0000004B B36E                    	mov bl, "n"						;muevo al bl un caracter "n" 
+   101 0000004D 8898[C8000000]          	mov byte[archivo+eax], bl		;paso al buffer el "n"
+   102 00000053 40                      	inc eax							;incremento el puntero
+   103 00000054 B300                    	mov bl, 0h						;muevo al bl un caracter null
+   104 00000056 8898[C8000000]          	mov byte[archivo+eax], bl		;paso al buffer el null
+   105                                  	;esta parte imprime lineas en blanco para aspectos esteticos
+   106 0000005C B9[4C000000]            	mov ecx, espacio
+   107 00000061 BA02000000              	mov edx, espacioLen
+   108 00000066 E81D010000              	call DisplayText
+   109                                  	;solicito el largo de la cadena de ADN
+   110 0000006B B9[00000000]            	mov ecx, solicitarLen
+   111 00000070 BA2C000000              	mov edx, LensolicitarLen
+   112 00000075 E80E010000              	call DisplayText				;imprimo el mensaje al usuario
+   113 0000007A BA64000000              	mov edx, inputLen				;muevo al edx el largo del mensaje
+   114 0000007F B9[64000000]            	mov ecx, input					;muevo al ecx el puntero del mesaje
+   115 00000084 E80C010000              	call ReadText					;llamo a la rutina que me genera un CIN
+   116 00000089 50                      	push eax						;salvo en pila el largo del mensaje
+   117                                  	
+   118 0000008A 8D35[64000000]          	lea esi, [input]				;inicializo para poder llamar al STR TO INT
+   119 00000090 59                      	pop ecx							;muevo al ecx el largo del mensaje
+   120 00000091 49                      	dec ecx							;le resto 1 (el largo incluye el ENTER)
+   121 00000092 E829010000              	call string_to_int				;llamo a la subrutina de STR TO INT
+   122 00000097 50                      	push eax						;salvo en la pila el int de la cantidad de digitos (*)
+   123 00000098 89C3                    	mov ebx, eax					;muevo la cantidad de digitos al ebx
+   124 0000009A 53                      	push ebx						;la vuelvo a salvar
+   125 0000009B 31C0                    	xor eax, eax					;limpio el eax
+   126 0000009D 50                      	push eax						;salvo un 0 en la pila
+   127                                  	;;;;;;;;;;;;;;;;;;;;;
+   128                                  ; funcion que genera un numero random entre 0 y 3
+   129                                  ; donde tomaremos la info para generar este diccionario
+   130                                  ; eax = {0:"A" , 1:"C", 2:"T", 3:"G"}
+   131                                  generar_random: 
+   132 0000009E 31C0                    	xor eax, eax						
+   133 000000A0 0F31                    	RDTSC				; \ estas 2 lineas me dejan el el eax un numero random entre 0 y 255 - Tomado de :
+   134 000000A2 25FF000000              	and eax, 0FFH		; / http://stackoverflow.com/questions/17182182/how-to-create-random-number-in-nasm-getting-system-time
+   135 000000A7 BB04000000              	mov ebx, 4			; muevo al ebx un 4 
+   136 000000AC 31D2                    	xor edx, edx		; limpio el edx para aplicar modulo
+   137 000000AE F7F3                    	div ebx				; divido (modulo) entre 4
+   138 000000B0 89D0                    	mov eax, edx		; paso el resultado random(0, 1, 2, 3) al eax
+   139                                  
+   140 000000B2 83F800                  	cmp eax, 0			;aca en caso de que el random sea 0 es adenina, 1 es citocina, 
+   141 000000B5 740C                    	je adenina			;2 es timina y 3 es guanina
+   142 000000B7 83F801                  	cmp eax, 1
+   143 000000BA 741C                    	je citocina
+   144 000000BC 83F802                  	cmp eax, 2
+   145 000000BF 742C                    	je timina
+   146 000000C1 EB3F                    	jmp guanina
+   147                                  
+   148                                  ;cada una de las sgts subrutinas insertan su caracter correspondiante en un buffer para
+   149                                  ;luego ser impresos en el archivo.adn
+   150                                  adenina:
+   151 000000C3 5A                      	pop edx							;saco el puntero del buffer
+   152 000000C4 59                      	pop ecx							;saco el largo de la cadena de adn
+   153 000000C5 B341                    	mov bl, "A"						;en el bl queda el caracter
+   154 000000C7 889A[08430F00]          	mov byte[cadena+edx], bl		;muevo al buffer el caracter dedicado a esta funcion
+   155 000000CD 42                      	inc edx							;incremento el puntero de buffer
+   156 000000CE 49                      	dec ecx							;decremento el largo de la cadena de adn
+   157 000000CF 51                      	push ecx						;guardo el largo de la cadenaLen	
+   158 000000D0 52                      	push edx						;guerdo el puntero del buffer
+   159 000000D1 83F900                  	cmp ecx, 0						;me fijo si no tengo mas elementos que insertar	
+   160 000000D4 75C8                    	jne generar_random				;si aun tengo elementos, vuelvo a generar random
+   161 000000D6 EB3F                    	jmp insertar					;si ya los tengo todos, los paso a insertar
+   162                                  	
+   163                                  citocina:
+   164 000000D8 5A                      	pop edx							;saco el puntero del buffer
+   165 000000D9 59                      	pop ecx							;saco el largo de la cadena de adn
+   166 000000DA B343                    	mov bl, "C"						;en el bl queda el caracter
+   167 000000DC 889A[08430F00]          	mov byte[cadena+edx], bl		;muevo al buffer el caracter dedicado a esta funcion
+   168 000000E2 42                      	inc edx							;incremento el puntero de buffer
+   169 000000E3 49                      	dec ecx							;decremento el largo de la cadena de adn
+   170 000000E4 51                      	push ecx						;guardo el largo de la cadenaLen	
+   171 000000E5 52                      	push edx						;guerdo el puntero del buffer
+   172 000000E6 83F900                  	cmp ecx, 0						;me fijo si no tengo mas elementos que insertar	
+   173 000000E9 75B3                    	jne generar_random				;si aun tengo elementos, vuelvo a generar random
+   174 000000EB EB2A                    	jmp insertar					;si ya los tengo todos, los paso a insertar
+   175                                  	
+   176                                  timina:
+   177 000000ED 5A                      	pop edx							;saco el puntero del buffer
+   178 000000EE 59                      	pop ecx							;saco el largo de la cadena de adn
+   179 000000EF B354                    	mov bl, "T"						;en el bl queda el caracter
+   180 000000F1 889A[08430F00]          	mov byte[cadena+edx], bl		;muevo al buffer el caracter dedicado a esta funcion
+   181 000000F7 42                      	inc edx							;incremento el puntero de buffer
+   182 000000F8 49                      	dec ecx							;decremento el largo de la cadena de adn
+   183 000000F9 51                      	push ecx						;guardo el largo de la cadenaLen	
+   184 000000FA 52                      	push edx						;guerdo el puntero del buffer
+   185 000000FB 83F900                  	cmp ecx, 0						;me fijo si no tengo mas elementos que insertar	
+   186 000000FE 759E                    	jne generar_random				;si aun tengo elementos, vuelvo a generar random
+   187 00000100 EB15                    	jmp insertar					;si ya los tengo todos, los paso a insertar
+   188                                  	
+   189                                  guanina:
+   190 00000102 5A                      	pop edx							;saco el puntero del buffer
+   191 00000103 59                      	pop ecx							;saco el largo de la cadena de adn
+   192 00000104 B347                    	mov bl, "G"						;en el bl queda el caracter
+   193 00000106 889A[08430F00]          	mov byte[cadena+edx], bl		;muevo al buffer el caracter dedicado a esta funcion
+   194 0000010C 42                      	inc edx							;incremento el puntero de buffer
+   195 0000010D 49                      	dec ecx							;decremento el largo de la cadena de adn
+   196 0000010E 51                      	push ecx						;guardo el largo de la cadenaLen	
+   197 0000010F 52                      	push edx						;guerdo el puntero del buffer
+   198 00000110 83F900                  	cmp ecx, 0						;me fijo si no tengo mas elementos que insertar	
+   199 00000113 7589                    	jne generar_random				;si aun tengo elementos, vuelvo a generar random
+   200 00000115 EB00                    	jmp insertar					;si ya los tengo todos, los paso a insertar
+   201                                  	
+   202                                  	
+   203                                  insertar:
+   204 00000117 5A                      	pop edx							;\ limpio la pila
+   205 00000118 58                      	pop eax							;/
+   206                                  
+   207 00000119 B808000000              	mov	eax, sys_create				;llamada al sistema
+   208 0000011E BB[C8000000]            	mov ebx, archivo				;puntero del nombre del prigrama
+   209 00000123 B980010000              	mov ecx, S_IRUSR|S_IWUSR		;otorgo permisos de escritura y lectura
+   210 00000128 31D2                    	xor edx, edx					;limpio el edx
+   211 0000012A CD80                    	int	80h							;llamada al sistema
+   212 0000012C 85C0                    	test eax,eax					;pregunto si cree bien el archivo
+   213 0000012E 7847                    	js error						;si lo creo mal, paso a notificarlo
+   214                                  		
+   215 00000130 5A                      	pop edx							;retorno el INT del largo de la cadena de archivo (*)
+   216 00000131 50                      	push eax						;salvo el file descriptor
+   217                                  	
+   218 00000132 89C3                    	mov ebx, eax					;muevo al bx, el file descriptor
+   219 00000134 B804000000              	mov eax, sys_write				;muevo al eax la funcion de escribir del sys
+   220 00000139 B9[08430F00]            	mov ecx, cadena					;muevo al ecx el puntero a la cadena de adn generada anteriormente
+   221 0000013E CD80                    	int 80h							;llamada del sistema
+   222                                  	
+   223 00000140 B806000000              	mov eax, sys_close				;solamente se llama a la llamada del sistema sys_close
+   224 00000145 5B                      	pop ebx							;retirno el file descriptor
+   225 00000146 CD80                    	int 80h							;llada al sistema
+   226                                  	
+   227                                  	;esta parte imprime lineas en blanco para aspectos esteticos
+   228 00000148 B9[4C000000]            	mov ecx, espacio
+   229 0000014D BA02000000              	mov edx, espacioLen
+   230 00000152 E831000000              	call DisplayText
+   231                                  	;imprimo que se creo el archivo exitoxamente
+   232 00000157 B9[68000000]            	mov ecx, MensjExito
+   233 0000015C BA1D000000              	mov edx, lenMensjExito
+   234 00000161 E822000000              	call DisplayText
+   235                                  	;esta parte imprime lineas en blanco para aspectos esteticos
+   236 00000166 B9[4C000000]            	mov ecx, espacio
+   237 0000016B BA02000000              	mov edx, espacioLen
+   238 00000170 E813000000              	call DisplayText
+   239 00000175 EB5B                    	jmp Cerrar						;paso a cerrar el programa
+   240                                  	
+   241                                  ;muestra en pantalla que ocurrio un error al crear el archivo
+   242                                  error:
+   243 00000177 B9[4E000000]            	mov ecx, errorMensj
+   244 0000017C BA1A000000              	mov edx, lenErrorMensj
+   245 00000181 E802000000              	call DisplayText
+   246 00000186 EB4A                    	jmp Cerrar
+   247                                  ; La siguiente subrutina llama el kernel y muetra un mensaje en pantalla.
+   248                                  ; desplega algo en la salida estándar. debe "setearse" lo siguiente:
+   249                                  ; ecx: el puntero al mensaje a desplegar
+   250                                  ; edx: el largo del mensaje a desplegar
+   251                                  ; modifica los registros eax y ebx.
+   252                                  DisplayText:
+   253 00000188 B804000000                  mov     eax, sys_write
+   254 0000018D BB01000000                  mov     ebx, stdout
+   255 00000192 CD80                        int     80h 
+   256 00000194 C3                          ret
+   257                                  
+   258                                  ; lee algo de la entrada estándar.debe "setearse" lo siguiente:
+   259                                  ; ecx: el puntero al buffer donde se almacenará
+   260                                  ; edx: el largo del mensaje a leer
+   261                                  ReadText:
+   262 00000195 BB00000000                  mov ebx, stdin
+   263 0000019A B803000000                  mov eax, sys_read
+   264 0000019F CD80                        int 80H
+   265 000001A1 C3                          ret
+   266                                  ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////   
+   267                                  ;http://stackoverflow.com/questions/19309749/nasm-assembly-convert-input-to-integer
+   268                                  ;Input:
+   269                                  ; EAX = integer value to convert
+   270                                  ; ESI = pointer to buffer to store the string in (must have room for at least 10 bytes)
+   271                                  ; Output:
+   272                                  ; EAX = pointer to the first character of the generated string
+   273                                  int_to_string:
+   274 000001A2 56                      	push esi
+   275 000001A3 83C609                  	add esi,9
+   276 000001A6 C60600                  	mov byte [esi],0
+   277 000001A9 BB0A000000              	mov ebx,10         
+   278                                  .next_digit:
+   279 000001AE 31D2                    	xor edx,edx         ; Clear edx prior to dividing edx:eax by ebx
+   280 000001B0 F7F3                    	div ebx             ; eax /= 10
+   281 000001B2 80C230                  	add dl,'0'          ; Convert the remainder to ASCII 
+   282 000001B5 4E                      	dec esi             ; store characters in reverse order
+   283 000001B6 8816                    	mov [esi],dl
+   284 000001B8 85C0                    	test eax,eax            
+   285 000001BA 75F2                    	jnz .next_digit     ; Repeat until eax==0
+   286 000001BC 89F0                    	mov eax,esi
+   287 000001BE 5E                      	pop esi
+   288 000001BF C3                      	ret
+   289                                  ; Input:
+   290                                  ; ESI = pointer to the string to convert
+   291                                  ; ECX = number of digits in the string (must be > 0)
+   292                                  ; Output:
+   293                                  ; EAX = integer value
+   294                                  string_to_int:
+   295 000001C0 31DB                      xor ebx,ebx    ; clear ebx
+   296                                  .next_digit:
+   297 000001C2 0FB606                    movzx eax,byte[esi]
+   298 000001C5 46                        inc esi
+   299 000001C6 2C30                      sub al,'0'    ; convert from ASCII to number
+   300 000001C8 6BDB0A                    imul ebx,10
+   301 000001CB 01C3                      add ebx,eax   ; ebx = ebx*10 + eax
+   302 000001CD E2F3                      loop .next_digit  ; while (--ecx)
+   303 000001CF 89D8                      mov eax,ebx
+   304 000001D1 C3                        ret
+   305                                  ;//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   306                                  ; La siguiente subrutina cierra el programa
+   307                                  Cerrar:
+   308 000001D2 B801000000              	mov eax, sys_exit				;muevo la variabla sys_close al eax
+   309 000001D7 CD80                    	int 80h							;llamo a la interrupcion de kernel

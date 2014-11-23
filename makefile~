@@ -1,0 +1,12 @@
+
+generar: generar.o
+	ld -m elf_i386 -o generar generar.o
+
+generar.o: generar.asm
+	nasm -f elf -g -F stabs generar.asm -l generar.lst
+
+smith: smith.o
+	ld -m elf_i386 -o smith smith.o
+
+smith.o: smith.asm
+	nasm -f elf -g -F stabs smith.asm -l smith.lst

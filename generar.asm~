@@ -39,6 +39,8 @@ section .bss
 ; La siguiente parte de código son datos inicializados
 section .data
 
+basura: db "basura.txt",0
+
 solicitarLen: db "Ingrese el tamanno de la secuencia de ADN: ",10		
 LensolicitarLen: equ $-solicitarLen	
 
@@ -51,7 +53,7 @@ espacioLen: equ $-espacio
 errorMensj: db "Error al crear el archivo",10		
 lenErrorMensj: equ $-errorMensj	
 
-MensjExito: db "¡Archivo creado con exito!",10,10
+MensjExito: db "¡Archivo creado con exito!",10.10
 lenMensjExito: equ $-MensjExito	
 
 
