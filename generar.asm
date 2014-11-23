@@ -193,7 +193,7 @@ insertar:
 	pop eax							;/
 
 	mov	eax, sys_create				;llamada al sistema
-	mov ebx, archivo				;puntero del nombre del prigrama
+	mov ebx, archivo				;puntero del nombre del programa
 	mov ecx, S_IRUSR|S_IWUSR		;otorgo permisos de escritura y lectura
 	xor edx, edx					;limpio el edx
 	int	80h							;llamada al sistema
